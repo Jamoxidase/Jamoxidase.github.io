@@ -5,12 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Draggable Balls with Gravity and Elastic Bounce</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
-    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        .ballBox {
+            position: relative; /* Changed to relative */
+            width: 1000px;
+            height: 500px;
+            background-color: #6aa883;
+            display: inline-block; /* Added */
+        }
+
+        .ball {
+            position: absolute;
+            width: 6rem;
+            height: 6rem;
+            border-radius: 50%;
+            background-color: #3490dc;
+            cursor: move;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        #launchButton { /* Added */
+            margin-top: 20px;
+            cursor: pointer;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <div class="ballBox"></div>
-    <script src="script.js"></script>
+    <div class="ballBox">
+        <!-- Ball elements will be dynamically added here -->
+    </div>
+    <button id="launchButton">Launch</button> <!-- Added -->
+
+    <script src="script.js"></script> <!-- Included the JavaScript file -->
 </body>
 </html>
-
-
