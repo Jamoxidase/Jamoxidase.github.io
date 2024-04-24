@@ -4,15 +4,15 @@ const ballBox = document.querySelector('.ballBox');
 const maxX = ballBox.clientWidth;
 const maxY = ballBox.clientHeight;
 const gravityStrength = 0.2; // Adjust gravity strength
-const horizontalMomentum = 0.05; // Adjust horizontal momentum
+const horizontalMomentum = 0.1; // Adjust horizontal momentum
 const elasticity = 0.8; // Adjust elasticity
 const dragTargets = new Set();
 
 for (let i = 0; i < numberOfBalls; i++) {
     const ball = document.createElement('div');
     ball.className = 'ball';
-    ball.style.top = `${Math.random() * maxY}px`;
-    ball.style.left = `${Math.random() * maxX}px`;
+    ball.style.top = `${Math.random() * (maxY - 100)}px`; // Avoid spawning balls near the bottom
+    ball.style.left = `${Math.random() * (maxX - 100)}px`; // Avoid spawning balls near the right
 
     const title = document.createElement('span');
     title.textContent = `${i}`;
@@ -21,8 +21,11 @@ for (let i = 0; i < numberOfBalls; i++) {
     ballBox.appendChild(ball);
     balls.push(ball);
 
-    let velocityX = 0;
-    let velocityY = 0;
+    let velocityX = Math.random() * 2 - 1; // Random horizontal velocity
+    let velocityY = Math.random() * 2 - 1; // Random vertical velocity
+
+    ball.velocityX = velocityX;
+    ball.velocityY = velocityY;
 
     ball.addEventListener('mousedown', (e) => {
         e.preventDefault();
@@ -47,9 +50,6 @@ for (let i = 0; i < numberOfBalls; i++) {
         document.addEventListener('mousemove', moveBall);
         document.addEventListener('mouseup', releaseBall);
     });
-
-    balls[i].velocityX = velocityX;
-    balls[i].velocityY = velocityY;
 }
 
 function gravity(ball) {
@@ -62,6 +62,7 @@ function gravity(ball) {
 function updateBalls() {
     balls.forEach(ball => {
         gravity(ball);
+        ball.style.left = `${parseFloat(ball.style.left) + ball.velocityX}px`; // Apply horizontal momentum
         checkWallCollisions(ball);
     });
 
