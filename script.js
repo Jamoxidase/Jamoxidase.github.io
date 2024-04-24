@@ -73,47 +73,45 @@ function updateBalls() {
 
 function checkCollisions() {
     for (let i = 0; i < balls.length; i++) {
-        for (let j = 0; j < balls.length; j++) {
-            if (i !== j) {
-                const ball1 = balls[i];
-                const ball2 = balls[j];
+        for (let j = i + 1; j < balls.length; j++) { // Start from i + 1 to avoid checking pairs twice
+            const ball1 = balls[i];
+            const ball2 = balls[j];
 
-                const distance = getDistance(getCenter(ball1), getCenter(ball2));
-                const minDistance = ball1.clientWidth / 2 + ball2.clientWidth / 2;
+            const distance = getDistance(getCenter(ball1), getCenter(ball2));
+            const minDistance = ball1.clientWidth / 2 + ball2.clientWidth / 2;
 
-                if (distance < minDistance) {
-                    const angle = Math.atan2(getCenter(ball2).y - getCenter(ball1).y, getCenter(ball2).x - getCenter(ball1).x);
-                    const pushDistance = minDistance - distance;
+            if (distance < minDistance) {
+                const angle = Math.atan2(getCenter(ball2).y - getCenter(ball1).y, getCenter(ball2).x - getCenter(ball1).x);
 
-                    const newX1 = getCenter(ball1).x - pushDistance * Math.cos(angle) / 2;
-                    const newY1 = getCenter(ball1).y - pushDistance * Math.sin(angle) / 2;
+                // Calculate relative velocity components
+                const dx = ball2.velocityX - ball1.velocityX;
+                const dy = ball2.velocityY - ball1.velocityY;
 
-                    const newX2 = getCenter(ball2).x + pushDistance * Math.cos(angle) / 2;
-                    const newY2 = getCenter(ball2).y + pushDistance * Math.sin(angle) / 2;
+                // Project relative velocity onto collision normal
+                const normalVelocity = dx * Math.cos(angle) + dy * Math.sin(angle);
 
-                    ball1.style.left = `${newX1 - ball1.clientWidth / 2}px`;
-                    ball1.style.top = `${newY1 - ball1.clientHeight / 2}px`;
-
-                    ball2.style.left = `${newX2 - ball2.clientWidth / 2}px`;
-                    ball2.style.top = `${newY2 - ball2.clientHeight / 2}px`;
-
-                    checkWallCollisions(ball1);
-                    checkWallCollisions(ball2);
-
-                    // Apply elastic bounce effect
-                    const relativeVelocityX = ball2.velocityX - ball1.velocityX;
-                    const relativeVelocityY = ball2.velocityY - ball1.velocityY;
-
-                    ball1.velocityX += relativeVelocityX * elasticity;
-                    ball1.velocityY += relativeVelocityY * elasticity;
-
-                    ball2.velocityX -= relativeVelocityX * elasticity;
-                    ball2.velocityY -= relativeVelocityY * elasticity;
+                // If balls are moving away from each other, no collision response needed
+                if (normalVelocity <= 0) {
+                    continue;
                 }
+
+                // Calculate masses (using area as approximation)
+                const mass1 = ball1.clientWidth ** 2;
+                const mass2 = ball2.clientWidth ** 2;
+
+                // Calculate impulse (change in velocity)
+                const impulse = 2 * normalVelocity / (mass1 + mass2);
+
+                // Update velocities
+                ball1.velocityX += impulse * Math.cos(angle) * mass2;
+                ball1.velocityY += impulse * Math.sin(angle) * mass2;
+                ball2.velocityX -= impulse * Math.cos(angle) * mass1;
+                ball2.velocityY -= impulse * Math.sin(angle) * mass1;
             }
         }
     }
 }
+
 
 function checkWallCollisions(ball) {
     const ballRect = ball.getBoundingClientRect();
