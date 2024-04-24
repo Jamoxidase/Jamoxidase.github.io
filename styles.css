@@ -1,0 +1,19 @@
+.ballBox {
+    position: absolute;
+    width: 1000px;
+    height: 500px;
+    background-color: #6aa883;
+}
+
+.ball {
+    position: absolute;
+    width: 6rem;
+    height: 6rem;
+    border-radius: 50%;
+    background-color: #3490dc;
+    cursor: move;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
