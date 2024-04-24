@@ -1,4 +1,4 @@
-const numberOfBalls = 30;
+const numberOfBalls = 10;
 const balls = [];
 const ballBox = document.querySelector('.ballBox');
 const maxX = ballBox.clientWidth;
