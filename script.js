@@ -9,48 +9,49 @@ const elasticity = 0.8; // Adjust elasticity
 const dragTargets = new Set();
 
 for (let i = 0; i < numberOfBalls; i++) {
-    const ball = document.createElement('div');
-    ball.className = 'ball';
-    ball.style.top = `${Math.random() * (maxY - 100)}px`; // Avoid spawning balls near the bottom
-    ball.style.left = `${Math.random() * (maxX - 100)}px`; // Avoid spawning balls near the right
+        const ball = document.createElement('div');
+        ball.className = 'ball';
+        ball.style.top = `${Math.random() * maxY}px`;
+        ball.style.left = `${Math.random() * maxX}px`;
 
-    const title = document.createElement('span');
-    title.textContent = `${i}`;
-    ball.appendChild(title);
+        const title = document.createElement('span');
+        title.textContent = `${i}`;
+        ball.appendChild(title);
 
-    ballBox.appendChild(ball);
-    balls.push(ball);
+        ballBox.appendChild(ball);
+        balls.push(ball);
 
-    let velocityX = Math.random() * 2 - 1; // Random horizontal velocity
-    let velocityY = Math.random() * 2 - 1; // Random vertical velocity
+        ball.velocityX = 0; // Added velocityX property
+        ball.velocityY = 0; // Added velocityY property
 
-    ball.velocityX = velocityX;
-    ball.velocityY = velocityY;
+        ball.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            dragTargets.add(ball);
+            const rect = ball.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const offsetY = e.clientY - rect.top;
 
-    ball.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        dragTargets.add(ball);
-        const rect = ball.getBoundingClientRect();
-        const offsetX = e.clientX - rect.left;
-        const offsetY = e.clientY - rect.top;
+            function moveBall(e) {
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+                ball.style.left = `${Math.max(0, Math.min(maxX - ball.clientWidth, x))}px`;
+                ball.style.top = `${Math.max(0, Math.min(maxY - ball.clientHeight, y))}px`;
+            }
 
-        function moveBall(e) {
-            const x = e.clientX - offsetX;
-            const y = e.clientY - offsetY;
-            ball.style.left = `${Math.max(0, Math.min(maxX - ball.clientWidth, x))}px`;
-            ball.style.top = `${Math.max(0, Math.min(maxY - ball.clientHeight, y))}px`;
-        }
+            function releaseBall() {
+                dragTargets.delete(ball);
+                document.removeEventListener('mousemove', moveBall);
+                document.removeEventListener('mouseup', releaseBall);
+            }
 
-        function releaseBall() {
-            dragTargets.delete(ball);
-            document.removeEventListener('mousemove', moveBall);
-            document.removeEventListener('mouseup', releaseBall);
-        }
+            document.addEventListener('mousemove', moveBall);
+            document.addEventListener('mouseup', releaseBall);
+        });
+    }
 
-        document.addEventListener('mousemove', moveBall);
-        document.addEventListener('mouseup', releaseBall);
-    });
-}
+
+
+
 
 function gravity(ball) {
     if (!dragTargets.has(ball)) {
