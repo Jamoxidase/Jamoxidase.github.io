@@ -64,10 +64,64 @@ function launchBalls() {
 
 function gravity(ball) {
     if (!dragTargets.has(ball)) {
-        ball.velocityY += gravityStrength; // Apply gravity
-        ball.style.top = `${parseFloat(ball.style.top) + ball.velocityY}px`;
+        const currentY = parseFloat(ball.style.top) || 0;
+        const newY = currentY + ball.velocityY;
+
+        if (newY > maxY - ball.clientHeight) {
+            ball.style.top = `${maxY - ball.clientHeight}px`; // Set to the bottom
+            ball.velocityY *= -elasticity; // Bounce effect when hitting the bottom
+        } else {
+            ball.style.top = `${newY}px`;
+            ball.velocityY += gravityStrength; // Apply gravity
+        }
+
+        const currentX = parseFloat(ball.style.left) || 0;
+        const newX = currentX + ball.velocityX;
+
+        if (newX < 0 || newX > maxX - ball.clientWidth) { // Added boundary check for X-axis
+            ball.velocityX *= -elasticity; // Bounce effect when hitting the walls
+        } else {
+            ball.style.left = `${newX}px`;
+        }
+
+        // Check for collisions with other balls
+        balls.forEach(otherBall => {
+            if (otherBall !== ball) {
+                const distance = getDistance(getCenter(ball), getCenter(otherBall));
+                const minDistance = ball.clientWidth / 2 + otherBall.clientWidth / 2;
+
+                if (distance < minDistance) {
+                    // Move the ball away from the other ball
+                    const angle = Math.atan2(getCenter(otherBall).y - getCenter(ball).y, getCenter(otherBall).x - getCenter(ball).x);
+                    const overlap = minDistance - distance;
+                    const moveX = overlap * Math.cos(angle);
+                    const moveY = overlap * Math.sin(angle);
+
+                    ball.style.left = `${parseFloat(ball.style.left) - moveX}px`;
+                    ball.style.top = `${parseFloat(ball.style.top) - moveY}px`;
+
+                    // Adjust velocities for both balls to avoid sticking
+                    const relativeVelocityX = otherBall.velocityX - ball.velocityX;
+                    const relativeVelocityY = otherBall.velocityY - ball.velocityY;
+
+                    const normalVelocity = relativeVelocityX * Math.cos(angle) + relativeVelocityY * Math.sin(angle);
+
+                    if (normalVelocity > 0) {
+                        const mass1 = ball.clientWidth ** 2;
+                        const mass2 = otherBall.clientWidth ** 2;
+                        const impulse = 2 * normalVelocity / (mass1 + mass2);
+
+                        ball.velocityX += impulse * Math.cos(angle) * mass2;
+                        ball.velocityY += impulse * Math.sin(angle) * mass2;
+                        otherBall.velocityX -= impulse * Math.cos(angle) * mass1;
+                        otherBall.velocityY -= impulse * Math.sin(angle) * mass1;
+                    }
+                }
+            }
+        });
     }
 }
+
 
 function updateBalls() {
     balls.forEach(ball => {
