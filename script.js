@@ -51,6 +51,14 @@ for (let i = 0; i < numberOfBalls; i++) {
     }
 
 
+function launchBalls() {
+        balls.forEach(ball => {
+            ball.velocityX = (Math.random() - 0.5) * 20; // Random X velocity
+            ball.velocityY = -(Math.random() * 30 + 10); // Random Y velocity
+        });
+    }
+
+    document.getElementById('launchButton').addEventListener('click', launchBalls); // Added event listener
 
 
 
