@@ -1,12 +1,13 @@
-const numberOfBalls = 10;
-const balls = [];
-const ballBox = document.querySelector('.ballBox');
-const maxX = ballBox.clientWidth;
-const maxY = ballBox.clientHeight;
-const gravityStrength = 0.2; // Adjust gravity strength
-const horizontalMomentum = 0.1; // Adjust horizontal momentum
-const elasticity = 0.8; // Adjust elasticity
-const dragTargets = new Set();
+document.addEventListener('DOMContentLoaded', function() {
+    const numberOfBalls = 30;
+    const balls = [];
+    const ballBox = document.querySelector('.ballBox');
+    const maxX = ballBox.clientWidth;
+    const maxY = ballBox.clientHeight;
+    const gravityStrength = 5.2; // Adjust gravity strength
+    const elasticity = 0.7; // Adjust elasticity
+    const dragTargets = new Set();
+
 
 for (let i = 0; i < numberOfBalls; i++) {
         const ball = document.createElement('div');
