@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mandelbrot Fractal Zoom</title>
+<title>Dynamic Mandelbrot Fractal Zoom</title>
 <style>
     body {
         margin: 0;
@@ -25,10 +25,10 @@
     const canvas = document.getElementById('fractalCanvas');
     const ctx = canvas.getContext('2d');
     
-    // Set initial zoom and position
     let zoom = 1;
-    let offsetX = -0.7;
-    let offsetY = 0.25;
+    let offsetX = -0.5;
+    let offsetY = 0;
+    let renderingQueue = []; // Queue for rendering tasks
     
     function drawMandelbrot() {
         const maxIterations = 100;
@@ -64,13 +64,41 @@
         ctx.putImageData(imageData, 0, 0);
     }
     
-    function animate() {
-        zoom *= 1.01; // Adjust the zoom level
-        drawMandelbrot();
-        requestAnimationFrame(animate);
+    function renderNext() {
+        if (renderingQueue.length > 0) {
+            const task = renderingQueue.shift(); // Get the next rendering task
+            offsetX = task.offsetX;
+            offsetY = task.offsetY;
+            zoom = task.zoom;
+            drawMandelbrot();
+            requestAnimationFrame(renderNext);
+        }
     }
     
-    animate();
+    function queueRendering(z, x, y) {
+        // Add the rendering task to the queue
+        renderingQueue.push({ zoom: z, offsetX: x, offsetY: y });
+        if (renderingQueue.length === 1) {
+            // Start rendering loop if queue was empty
+            renderNext();
+        }
+    }
+    
+    function handleZoom(event) {
+        const zoomFactor = event.deltaY > 0 ? 1.1 : 0.9;
+        const mouseX = event.clientX - canvas.offsetLeft;
+        const mouseY = event.clientY - canvas.offsetTop;
+        const newX = (mouseX - canvas.width / 2) / (0.5 * zoom * canvas.width) + offsetX;
+        const newY = (mouseY - canvas.height / 2) / (0.5 * zoom * canvas.height) + offsetY;
+        zoom *= zoomFactor;
+        offsetX = newX - (mouseX - canvas.width / 2) / (0.5 * zoom * canvas.width);
+        offsetY = newY - (mouseY - canvas.height / 2) / (0.5 * zoom * canvas.height);
+        queueRendering(zoom, offsetX, offsetY); // Queue the rendering task
+    }
+    
+    canvas.addEventListener('wheel', handleZoom);
+    
+    drawMandelbrot();
 </script>
 </body>
 </html>
