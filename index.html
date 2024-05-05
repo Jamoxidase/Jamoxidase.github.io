@@ -1,104 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dynamic Mandelbrot Fractal Zoom</title>
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: black;
+    <meta charset="UTF-8">
+    <title>Exploring Point Clouds in Drug Discovery</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: white;
+            background-color: grey; /* Changed from black to grey */
+            display: flex;
+            justify-content: center; /* Centers the main container on the page */
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+        }
+        #main-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+            background-color: black; /* Ensures the main container background is black */
+            border-radius: 10px; /* Rounded corners for the container */
+            width: 90%; /* Occupies 80% of the viewport width */
+            height: 50%; /* And 90% of the viewport height, adjust this value to change height */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Adds shadow for better visibility */
+            overflow: hidden; /* Ensures nothing goes outside the container */
+        }
+        .text-section {
+            width: 40%;
+        }
+        .text-section h1 {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .text-section p {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        #visualization-container {
+            width: 60%;
+            height: 100%; /* Full height of the main container */
+            position: relative;
+        }
+        svg {
+            width: 200px;
+            height: 200px;
+            position: absolute;
+            overflow: visible;
+        }
+        .hover-label {
+        position: absolute;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 8px;
+        color: white;
+        display: none;
     }
-    canvas {
-        border: 1px solid white;
-    }
-</style>
+    </style>
+    
+
 </head>
 <body>
-<canvas id="fractalCanvas" width="800" height="600"></canvas>
-<script>
-    const canvas = document.getElementById('fractalCanvas');
-    const ctx = canvas.getContext('2d');
+    <div id="main-container">
+        <div class="text-section">
+            <h1>The Power of Point Clouds in Drug Discovery</h1>
+            <p>Point clouds provide a three-dimensional representation of molecular structures, offering unique insights into the physical properties of potential drug compounds. By leveraging deep learning techniques, researchers can analyze these complex datasets to predict molecular behavior and interactions more effectively, accelerating the drug discovery process.</p>
+        </div>
+        <div id="visualization-container"></div>
+    </div>
     
-    let zoom = 1;
-    let offsetX = -0.5;
-    let offsetY = 0;
-    let renderingQueue = []; // Queue for rendering tasks
+    <script type="text/javascript">
+        const visualizationContainer = d3.select("#visualization-container");
+        let containerWidth = visualizationContainer.node().clientWidth;
+        let containerHeight = visualizationContainer.node().clientHeight;
+        let simulation;
+        let nodes = [];
+        const rotationSpeedFactor = 0.05 / 4; // Reduced speed to a quarter
     
-    function drawMandelbrot() {
-        const maxIterations = 100;
-        const w = canvas.width;
-        const h = canvas.height;
-        const imageData = ctx.createImageData(w, h);
-        const data = imageData.data;
-        const aspectRatio = w / h;
-        
-        for (let x = 0; x < w; x++) {
-            for (let y = 0; y < h; y++) {
-                const zx = (x - w / 2) / (0.5 * zoom * w) + offsetX;
-                const zy = (y - h / 2) / (0.5 * zoom * h) + offsetY;
-                let a = zx;
-                let b = zy;
-                let n = 0;
-                while (n < maxIterations && a * a + b * b < 4) {
-                    const temp = a * a - b * b + zx;
-                    b = 2 * a * b + zy;
-                    a = temp;
-                    n++;
-                }
-                const red = n % 256;
-                const green = (n * 3) % 256;
-                const blue = (n * 5) % 256;
-                const index = (y * w + x) * 4;
-                data[index] = red;
-                data[index + 1] = green;
-                data[index + 2] = blue;
-                data[index + 3] = 255;
-            }
+        document.addEventListener("DOMContentLoaded", function() {
+            loadPointClouds(); // Automatically load point clouds
+        });
+    
+        function rotate3D(points, angleX, angleY) {
+            const cosX = Math.cos(angleX);
+            const sinX = Math.sin(angleX);
+            const cosY = Math.cos(angleY);
+            const sinY = Math.sin(angleY);
+    
+            return points.map(p => {
+                let y = p[1] * cosX - p[2] * sinX;
+                let z = p[1] * sinX + p[2] * cosX;
+                let x = p[0] * cosY + z * sinY;
+                z = z * cosY - p[0] * sinY;
+                return {x: x, y: y, z: p.z, color: p.color};
+            });
         }
-        ctx.putImageData(imageData, 0, 0);
-    }
     
-    function renderNext() {
-        if (renderingQueue.length > 0) {
-            const task = renderingQueue.shift(); // Get the next rendering task
-            offsetX = task.offsetX;
-            offsetY = task.offsetY;
-            zoom = task.zoom;
-            drawMandelbrot();
-            requestAnimationFrame(renderNext);
+        function updatePositions() {
+            nodes.forEach(node => {
+                const svg = visualizationContainer.select(`svg#${node.id}`);
+                svg.style("left", `${Math.max(0, Math.min(containerWidth - 200, node.x))}px`)
+                   .style("top", `${Math.max(0, Math.min(containerHeight - 200, node.y))}px`);
+    
+                const points = rotate3D(node.points, node.angleX, node.angleY);
+                const circles = svg.selectAll("circle").data(points);
+                circles.join("circle")
+                       .attr("cx", point => node.scale(point.x))
+                       .attr("cy", point => node.scale(point.y))
+                       .attr("r", 2)
+                       .style("fill", point => point.color);
+            });
         }
-    }
     
-    function queueRendering(z, x, y) {
-        // Add the rendering task to the queue
-        renderingQueue.push({ zoom: z, offsetX: x, offsetY: y });
-        if (renderingQueue.length === 1) {
-            // Start rendering loop if queue was empty
-            renderNext();
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
         }
-    }
     
-    function handleZoom(event) {
-        const zoomFactor = event.deltaY > 0 ? 1.1 : 0.9;
-        const mouseX = event.clientX - canvas.offsetLeft;
-        const mouseY = event.clientY - canvas.offsetTop;
-        const newX = (mouseX - canvas.width / 2) / (0.5 * zoom * canvas.width) + offsetX;
-        const newY = (mouseY - canvas.height / 2) / (0.5 * zoom * canvas.height) + offsetY;
-        zoom *= zoomFactor;
-        offsetX = newX - (mouseX - canvas.width / 2) / (0.5 * zoom * canvas.width);
-        offsetY = newY - (mouseY - canvas.height / 2) / (0.5 * zoom * canvas.height);
-        queueRendering(zoom, offsetX, offsetY); // Queue the rendering task
-    }
+        function dragged(event, d) {
+            d.fx = Math.max(0, Math.min(containerWidth - 200, event.x));
+            d.fy = Math.max(0, Math.min(containerHeight - 200, event.y));
+        }
     
-    canvas.addEventListener('wheel', handleZoom);
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
     
-    drawMandelbrot();
-</script>
+        function loadPointClouds() {
+    const numClouds = 6;  // Specify the desired number of point clouds to display
+    d3.csv("attenuatedPos.csv").then(data => {
+        let zValues = data.flatMap(d => JSON.parse(d.point_cloud).map(p => p[2]));
+        const colorScale = d3.scaleSequential(d3.interpolateCool).domain([Math.min(...zValues), Math.max(...zValues)]);
+
+        nodes = data.slice(0, numClouds).map((d, index) => {
+            let points = JSON.parse(d['point_cloud']).map(p => ({
+                ...p,
+                color: colorScale(p[2])
+            }));
+            return {
+                id: `node-${index}`,
+                points: points,
+                x: Math.random() * (containerWidth - 200),
+                y: Math.random() * (containerHeight - 200),
+                scale: d3.scaleLinear().domain([-1, 1]).range([10, 190]),
+                radius: 100,
+                angleX: 0,
+                angleY: 0
+            };
+        });
+
+        simulation = d3.forceSimulation(nodes)
+            .force("charge", d3.forceManyBody().strength(-250)) // Stronger repulsion to evenly distribute nodes
+            .force("collision", d3.forceCollide().radius(d => d.radius + 5)) // Prevent overlap with a slight padding
+            .on("tick", ticked);
+
+        visualizationContainer.selectAll("svg")
+            .data(nodes)
+            .enter().append("svg")
+            .attr("id", d => d.id)
+            .attr("style", d => `left: ${d.x}px; top: ${d.y}px`)
+            .attr("width", 200)
+            .attr("height", 200)
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .each(function(d) {
+                updatePositions();
+            });
+
+        requestAnimationFrame(animateRotation); // Continuous rotation
+    }).catch(error => {
+        console.error('Error loading or parsing the data:', error);
+    });
+}
+
+function dragged(event, d) {
+    d.fx = event.x;
+    d.fy = event.y;
+    simulation.alphaTarget(0.1).restart(); // Lower alpha target for smoother dragging
+}
+
+function dragstarted(event, d) {
+    if (!event.active) simulation.alpha(0.3); // Initial bump to the simulation for responsiveness
+    d.fx = d.x;
+    d.fy = d.y;
+}
+
+function dragended(event, d) {
+    if (!event.active) simulation.alphaTarget(0);
+    d.fx = null;
+    d.fy = null; // Allow the node to move freely after dragging
+}
+
+
+function ticked() {
+    updatePositions(); // Update positions on every simulation 'tick'
+}
+
+
+function animateRotation() {
+    nodes.forEach(node => {
+        node.angleX += rotationSpeedFactor;
+        node.angleY += rotationSpeedFactor * 0.5;
+    });
+    updatePositions();
+    requestAnimationFrame(animateRotation); // Continue the animation loop
+}
+
+    </script>
+    
+    
+    
 </body>
 </html>
+
+    
+    
