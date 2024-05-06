@@ -75,7 +75,7 @@ function ticked() {
 
 function loadPointClouds() {
     const numClouds = 6;  // Specify the desired number of point clouds to display
-    d3.csv("attenuatedPos.csv").then(data => {
+    d3.csv("attenuatedPos.txt").then(data => {
         console.log("Data loaded", data);  // This will show you what the script sees after loading
         let zValues = data.flatMap(d => JSON.parse(d.point_cloud).map(p => p[2]));
         const colorScale = d3.scaleSequential(d3.interpolateCool).domain([Math.min(...zValues), Math.max(...zValues)]);
