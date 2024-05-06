@@ -7,7 +7,20 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="script.js" defer></script>
 </head>
+<style>
+    .outer-div {
+        display: flex;
+        justify-content: center;
+        padding: 0 20px; 
+    }
+    
+    #main-container {
+        width: 80%; 
+        max-width: 1200px; 
+    }
+</style>
 <body>
+    <div class="outer-div">
     <div id="main-container">
         <div class="text-section">
             <h1>The Power of Point Clouds in Drug Discovery</h1>
@@ -16,5 +29,6 @@
         </div>
         <div id="visualization-container"></div>
     </div>
+</div>
 </body>
 </html>
