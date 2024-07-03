@@ -87,14 +87,14 @@
 <body>
     <nav>
         <ul>
-            <li><a href="#" onclick="showContent('demo')">Demo</a></li>
+            <li><a href="#" onclick="showContent('cloud-demo')">Cloud Demo</a></li>
             <li><a href="#" onclick="showContent('resume')">Resume</a></li>
         </ul>
     </nav>
 
-    <div class="outer-div">
-        <div id="main-container">
-            <div id="demo-content" class="content active">
+    <div id="cloud-demo-content" class="content active">
+        <div class="outer-div">
+            <div id="main-container">
                 <div class="text-section">
                     <h1>The Power of Point Clouds in Drug Discovery</h1>
                     <p>Point clouds provide a three-dimensional representation of molecular structures, offering unique insights into the physical properties of potential drug compounds. By leveraging deep learning techniques, researchers can analyze these complex datasets to predict molecular behavior and interactions more effectively, accelerating the drug discovery process.</p>
@@ -102,8 +102,12 @@
                 </div>
                 <div id="visualization-container"></div>
             </div>
+        </div>
+    </div>
 
-            <div id="resume-content" class="content">
+    <div id="resume-content" class="content">
+        <div class="outer-div">
+            <div id="main-container">
                 <h1>James Larbalestier</h1>
                 <div class="contact-info">
                     <p>Bioinformatics Scientist<br>
